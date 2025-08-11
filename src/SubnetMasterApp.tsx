@@ -560,6 +560,40 @@ const SubnetMasterApp = () => {
   );
 
   const LevelScreen = () => {
+    // Local state for form inputs to prevent focus loss
+    const [formData, setFormData] = useState({
+      networkAddress: '',
+      subnetMask: '',
+      broadcastAddress: '',
+      firstHost: '',
+      lastHost: ''
+    });
+
+    // Initialize form data when subnet changes
+    useEffect(() => {
+      if (userAnswers[currentSubnet]) {
+        setFormData(userAnswers[currentSubnet]);
+      } else {
+        setFormData({
+          networkAddress: '',
+          subnetMask: '',
+          broadcastAddress: '',
+          firstHost: '',
+          lastHost: ''
+        });
+      }
+    }, [currentSubnet]);
+
+    // Update local form data
+    const handleInputChange = (field, value) => {
+      setFormData(prev => ({
+        ...prev,
+        [field]: value
+      }));
+      // Also update main state
+      updateSubnetAnswer(field, value);
+    };
+
     if (!currentLevel) return null;
 
     if (gameState === 'tutorial') {
@@ -651,15 +685,6 @@ const SubnetMasterApp = () => {
       const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
       const currentSolution = solution.solutions[currentSubnet];
 
-      // Get current subnet answers with defaults
-      const currentAnswers = userAnswers[currentSubnet] || {
-        networkAddress: '',
-        subnetMask: '',
-        broadcastAddress: '',
-        firstHost: '',
-        lastHost: ''
-      };
-
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
           <div className="container mx-auto px-4 py-8">
@@ -716,8 +741,8 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.0"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={currentAnswers.networkAddress}
-                      onChange={(e) => updateSubnetAnswer('networkAddress', e.target.value)}
+                      value={formData.networkAddress}
+                      onChange={(e) => handleInputChange('networkAddress', e.target.value)}
                       autoComplete="off"
                     />
                   </div>
@@ -732,8 +757,8 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 255.255.255.192"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={currentAnswers.subnetMask}
-                      onChange={(e) => updateSubnetAnswer('subnetMask', e.target.value)}
+                      value={formData.subnetMask}
+                      onChange={(e) => handleInputChange('subnetMask', e.target.value)}
                       autoComplete="off"
                     />
                   </div>
@@ -748,8 +773,8 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.63"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={currentAnswers.broadcastAddress}
-                      onChange={(e) => updateSubnetAnswer('broadcastAddress', e.target.value)}
+                      value={formData.broadcastAddress}
+                      onChange={(e) => handleInputChange('broadcastAddress', e.target.value)}
                       autoComplete="off"
                     />
                   </div>
@@ -764,8 +789,8 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.1"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={currentAnswers.firstHost}
-                      onChange={(e) => updateSubnetAnswer('firstHost', e.target.value)}
+                      value={formData.firstHost}
+                      onChange={(e) => handleInputChange('firstHost', e.target.value)}
                       autoComplete="off"
                     />
                   </div>
@@ -780,8 +805,8 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.62"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={currentAnswers.lastHost}
-                      onChange={(e) => updateSubnetAnswer('lastHost', e.target.value)}
+                      value={formData.lastHost}
+                      onChange={(e) => handleInputChange('lastHost', e.target.value)}
                       autoComplete="off"
                     />
                   </div>
