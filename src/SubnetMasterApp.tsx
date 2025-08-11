@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronRight, Lock, Building, Wifi, Users, Globe, Briefcase, Trophy, Star, Play, Home, Target, Clock, CheckCircle, AlertCircle, Check, X } from 'lucide-react';
 
 const SubnetMasterApp = () => {
@@ -646,8 +646,12 @@ const SubnetMasterApp = () => {
     }
 
     if (gameState === 'playing') {
-      const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
-      const currentSolution = solution.solutions[currentSubnet];
+      const solution = useMemo(() => {
+  return calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
+}, [scenario.baseNetwork, scenario.requiredSubnets]);
+
+const currentSolution = solution.solutions[currentSubnet];
+
       
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
@@ -703,9 +707,11 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.0"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={userAnswers[currentSubnet]?.networkAddress || ''}
-                      onChange={(e) => updateSubnetAnswer('networkAddress', e.target.value)}
-                    />
+                      autoComplete="off"
+                      inputMode="decimal"
+                      defaultValue={userAnswers[currentSubnet]?.networkAddress || ''}
+                       onBlur={(e) => updateSubnetAnswer('networkAddress', e.target.value)}
+                     />
                   </div>
 
                   <div>
@@ -716,8 +722,10 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 255.255.255.192"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={userAnswers[currentSubnet]?.subnetMask || ''}
-                      onChange={(e) => updateSubnetAnswer('subnetMask', e.target.value)}
+                      autoComplete="off"
+                      inputMode="decimal"
+                      defaultValue={userAnswers[currentSubnet]?.subnetMask || ''}
+                      onBlur={(e) => updateSubnetAnswer('subnetMask', e.target.value)}
                     />
                   </div>
 
@@ -729,8 +737,10 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.63"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={userAnswers[currentSubnet]?.broadcastAddress || ''}
-                      onChange={(e) => updateSubnetAnswer('broadcastAddress', e.target.value)}
+                      autoComplete="off"
+                      inputMode="decimal"
+                      defaultValue={userAnswers[currentSubnet]?.broadcastAddress || ''}
+                      onBlur={(e) => updateSubnetAnswer('broadcastAddress', e.target.value)}
                     />
                   </div>
 
@@ -742,8 +752,10 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.1"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={userAnswers[currentSubnet]?.firstHost || ''}
-                      onChange={(e) => updateSubnetAnswer('firstHost', e.target.value)}
+                      autoComplete="off"
+                      inputMode="decimal"
+                      defaultValue={userAnswers[currentSubnet]?.firstHost || ''}
+                      onBlur={(e) => updateSubnetAnswer('firstHost', e.target.value)}
                     />
                   </div>
 
@@ -755,8 +767,10 @@ const SubnetMasterApp = () => {
                       type="text"
                       placeholder="e.g., 192.168.1.62"
                       className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={userAnswers[currentSubnet]?.lastHost || ''}
-                      onChange={(e) => updateSubnetAnswer('lastHost', e.target.value)}
+                      autoComplete="off"
+                      inputMode="decimal"
+                      defaultValue={userAnswers[currentSubnet]?.lastHost || ''}
+                      onBlur={(e) => updateSubnetAnswer('lastHost', e.target.value)}
                     />
                   </div>
                 </div>

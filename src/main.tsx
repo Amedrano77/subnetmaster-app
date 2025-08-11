@@ -1,11 +1,17 @@
 import * as Sentry from "@sentry/react";
-import { BrowserTracing } from "@sentry/tracing";
+
+// pull DSN from env (safer than hardcoding)
+const dsn = import.meta.env.VITE_SENTRY_DSN; // will be undefined locally until you set it
 
 Sentry.init({
-  dsn: "YOUR_SENTRY_DSN_HERE", // You get this from Sentry dashboard
-  integrations: [new BrowserTracing()],
-  tracesSampleRate: 1.0, // 1.0 = capture all transactions, lower in production if needed
+  dsn,
+  integrations: [Sentry.browserTracingIntegration()],
+  tracesSampleRate: 1.0, // capture 100% of transactions (lower later if you want)
+  // Optional: session replay (remove if you don't want it)
+  // replaysSessionSampleRate: 0.1,
+  // replaysOnErrorSampleRate: 1.0,
 });
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import SubnetMasterApp from './SubnetMasterApp'
