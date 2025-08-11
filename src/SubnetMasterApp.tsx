@@ -1,5 +1,154 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, Lock, Building, Wifi, Users, Globe, Briefcase, Trophy, Star, Play, Home, Target, Clock, CheckCircle, Check, X } from 'lucide-react';
+
+// Form component separated to prevent re-renders
+const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
+  const [networkAddress, setNetworkAddress] = useState('');
+  const [subnetMask, setSubnetMask] = useState('');
+  const [broadcastAddress, setBroadcastAddress] = useState('');
+  const [firstHost, setFirstHost] = useState('');
+  const [lastHost, setLastHost] = useState('');
+  const [feedback, setFeedback] = useState([]);
+
+  // Reset form when subnet changes
+  useEffect(() => {
+    setNetworkAddress('');
+    setSubnetMask('');
+    setBroadcastAddress('');
+    setFirstHost('');
+    setLastHost('');
+    setFeedback([]);
+  }, [currentSubnet]);
+
+  const handleSubmit = () => {
+    const answers = {
+      networkAddress,
+      subnetMask,
+      broadcastAddress,
+      firstHost,
+      lastHost
+    };
+
+    const result = onSubmit(answers);
+    if (result.feedback) {
+      setFeedback(result.feedback);
+      if (result.shouldContinue) {
+        setTimeout(() => {
+          setFeedback([]);
+        }, 3000);
+      }
+    }
+  };
+
+  return (
+    <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 border border-white/20">
+      <h3 className="text-2xl font-bold mb-6 text-center text-white">
+        Configure Subnet {currentSubnet + 1}
+      </h3>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        <div>
+          <label htmlFor="networkAddress" className="block text-sm font-medium text-gray-300 mb-2">
+            Network Address
+          </label>
+          <input
+            id="networkAddress"
+            type="text"
+            placeholder="e.g., 192.168.1.0"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            value={networkAddress}
+            onChange={(e) => setNetworkAddress(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="subnetMask" className="block text-sm font-medium text-gray-300 mb-2">
+            Subnet Mask
+          </label>
+          <input
+            id="subnetMask"
+            type="text"
+            placeholder="e.g., 255.255.255.192"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            value={subnetMask}
+            onChange={(e) => setSubnetMask(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="broadcastAddress" className="block text-sm font-medium text-gray-300 mb-2">
+            Broadcast Address
+          </label>
+          <input
+            id="broadcastAddress"
+            type="text"
+            placeholder="e.g., 192.168.1.63"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            value={broadcastAddress}
+            onChange={(e) => setBroadcastAddress(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="firstHost" className="block text-sm font-medium text-gray-300 mb-2">
+            First Host
+          </label>
+          <input
+            id="firstHost"
+            type="text"
+            placeholder="e.g., 192.168.1.1"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            value={firstHost}
+            onChange={(e) => setFirstHost(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="md:col-span-2">
+          <label htmlFor="lastHost" className="block text-sm font-medium text-gray-300 mb-2">
+            Last Host
+          </label>
+          <input
+            id="lastHost"
+            type="text"
+            placeholder="e.g., 192.168.1.62"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+            value={lastHost}
+            onChange={(e) => setLastHost(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+      </div>
+
+      {feedback.length > 0 && (
+        <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
+          <h4 className="font-bold text-yellow-300 mb-2">📋 Feedback:</h4>
+          {feedback.map((fb, index) => (
+            <div key={index} className={`flex items-center mb-1 ${
+              fb.includes('✅') ? 'text-green-300' : 'text-red-300'
+            }`}>
+              {fb.includes('✅') ? <Check className="w-4 h-4 mr-2" /> : <X className="w-4 h-4 mr-2" />}
+              {fb}
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="text-center mt-8">
+        <button
+          onClick={handleSubmit}
+          className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 text-white"
+          disabled={feedback.length > 0}
+        >
+          {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level!' : 'Submit & Continue'} 🎯
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const SubnetMasterApp = () => {
   const [currentView, setCurrentView] = useState('intro');
@@ -7,7 +156,6 @@ const SubnetMasterApp = () => {
   const [gameState, setGameState] = useState('tutorial');
   const [currentSubnet, setCurrentSubnet] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
-  const [feedback, setFeedback] = useState([]);
   const [score, setScore] = useState(0);
   const [scenario, setScenario] = useState(null);
 
@@ -112,7 +260,6 @@ const SubnetMasterApp = () => {
     setGameState('tutorial');
     setCurrentSubnet(0);
     setUserAnswers({});
-    setFeedback([]);
     setScore(0);
 
     if (level.id === 1) {
@@ -125,30 +272,34 @@ const SubnetMasterApp = () => {
     setGameState('playing');
   };
 
-  const submitSubnetAnswer = () => {
-    if (!scenario || !currentLevel) return;
+  const handleFormSubmit = useCallback((answers) => {
+    if (!scenario || !currentLevel) return { feedback: [], shouldContinue: false };
 
     const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
     const currentSolution = solution.solutions[currentSubnet];
 
-    const subnetAnswers = userAnswers[currentSubnet] || {};
     const validations = {
-      networkAddress: validateLevel1Answer(subnetAnswers.networkAddress || '', currentSolution, 'networkAddress'),
-      subnetMask: validateLevel1Answer(subnetAnswers.subnetMask || '', currentSolution, 'subnetMask'),
-      broadcastAddress: validateLevel1Answer(subnetAnswers.broadcastAddress || '', currentSolution, 'broadcastAddress'),
-      firstHost: validateLevel1Answer(subnetAnswers.firstHost || '', currentSolution, 'firstHost'),
-      lastHost: validateLevel1Answer(subnetAnswers.lastHost || '', currentSolution, 'lastHost')
+      networkAddress: validateLevel1Answer(answers.networkAddress || '', currentSolution, 'networkAddress'),
+      subnetMask: validateLevel1Answer(answers.subnetMask || '', currentSolution, 'subnetMask'),
+      broadcastAddress: validateLevel1Answer(answers.broadcastAddress || '', currentSolution, 'broadcastAddress'),
+      firstHost: validateLevel1Answer(answers.firstHost || '', currentSolution, 'firstHost'),
+      lastHost: validateLevel1Answer(answers.lastHost || '', currentSolution, 'lastHost')
     };
 
     const correctCount = Object.values(validations).filter(v => v.isCorrect).length;
+    const feedbackMessages = Object.values(validations).map(v => v.feedback);
 
-    setFeedback(Object.values(validations).map(v => v.feedback));
+    // Store answers
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentSubnet]: answers
+    }));
 
     if (currentSubnet < scenario.requiredSubnets - 1) {
       setTimeout(() => {
-        setCurrentSubnet(currentSubnet + 1);
-        setFeedback([]);
+        setCurrentSubnet(prev => prev + 1);
       }, 3000);
+      return { feedback: feedbackMessages, shouldContinue: true };
     } else {
       const finalScore = calculateScore(correctCount, scenario.requiredSubnets * 5);
       setScore(finalScore);
@@ -164,23 +315,14 @@ const SubnetMasterApp = () => {
         }
         setGameProgress(newProgress);
       }
-      setGameState('completed');
-    }
-  };
 
-  const updateSubnetAnswer = (field, value) => {
-    setUserAnswers(prev => {
-      const newAnswers = { ...prev };
-      if (!newAnswers[currentSubnet]) {
-        newAnswers[currentSubnet] = {};
-      }
-      newAnswers[currentSubnet] = {
-        ...newAnswers[currentSubnet],
-        [field]: value
-      };
-      return newAnswers;
-    });
-  };
+      setTimeout(() => {
+        setGameState('completed');
+      }, 3000);
+
+      return { feedback: feedbackMessages, shouldContinue: false };
+    }
+  }, [currentSubnet, scenario, currentLevel, gameProgress]);
 
   const levels = [
     {
@@ -251,354 +393,296 @@ const SubnetMasterApp = () => {
     }
   ];
 
-  const IntroScreen = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
-      </div>
-
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="text-center mb-12">
-          <div className="mb-6">
-            <div className="inline-block p-6 bg-white/10 backdrop-blur-md rounded-full mb-6 border border-white/20">
-              <Building className="w-20 h-20 text-blue-400" />
-            </div>
-            <h1 className="text-7xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent mb-6">
-              SubnetMaster Academy
-            </h1>
-            <p className="text-2xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
-              Master network subnetting through an epic journey at <span className="font-bold text-cyan-300">ByteTech Industries</span>
-            </p>
-          </div>
+  if (currentView === 'intro') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white font-sans">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
         </div>
 
-        <div className="max-w-5xl mx-auto mb-16">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 border border-white/20 shadow-2xl">
-            <div className="grid lg:grid-cols-2 gap-10 items-center">
-              <div>
-                <h2 className="text-4xl font-bold mb-8 text-transparent bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text">
-                  Welcome to ByteTech Industries! 🏢
-                </h2>
-                <div className="space-y-6 text-lg leading-relaxed">
-                  <p className="text-gray-200">
-                    You're <span className="font-bold text-blue-300">Alex</span>, a new IT apprentice at ByteTech Industries - a cutting-edge tech company with network challenges on every floor.
-                  </p>
-                  <p className="text-gray-200">
-                    Your mentor <span className="text-green-400 font-bold">NetBot 🤖</span> will guide you through the building, solving increasingly complex subnetting puzzles.
-                  </p>
-                  <p className="text-gray-200">
-                    Each floor presents unique networking challenges. Complete each level to unlock your keycard and advance to the next floor!
-                  </p>
-                </div>
+        <div className="container mx-auto px-4 py-8 relative z-10">
+          <div className="text-center mb-12">
+            <div className="mb-6">
+              <div className="inline-block p-6 bg-white/10 backdrop-blur-md rounded-full mb-6 border border-white/20">
+                <Building className="w-20 h-20 text-blue-400" />
               </div>
-
-              <div className="relative">
-                <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl p-8 border border-blue-400/30 shadow-xl">
-                  <div className="text-center mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-                      <span className="text-3xl">👨‍💻</span>
-                    </div>
-                    <h3 className="font-bold text-xl text-blue-300">Alex (That's You!)</h3>
-                    <p className="text-blue-200">IT Apprentice Level 1</p>
-                    <div className="mt-2 bg-blue-500/20 rounded-full h-2">
-                      <div className="bg-blue-400 h-2 rounded-full w-1/4 animate-pulse"></div>
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-                      <span className="text-2xl">🤖</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-green-300">NetBot</h3>
-                    <p className="text-green-200">Your AI Mentor</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
-            <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <Trophy className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4">Progressive Mastery</h3>
-            <p className="text-gray-300 leading-relaxed">Journey from basic Class C networks to global Class A architectures with 6 carefully crafted levels</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <Target className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4">Real-World Scenarios</h3>
-            <p className="text-gray-300 leading-relaxed">Solve actual business problems from law firms to hospitals with immediate feedback and professional guidance</p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <Star className="w-8 h-8 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4">Gamified Experience</h3>
-            <p className="text-gray-300 leading-relaxed">Unlock floors, earn achievements, track progress, and become a certified SubnetMaster consultant</p>
-          </div>
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={() => setCurrentView('building')}
-            className="group relative inline-flex items-center px-12 py-6 bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 rounded-2xl font-bold text-2xl transition-all duration-500 hover:scale-105 hover:shadow-2xl shadow-xl"
-          >
-            <span className="relative flex items-center">
-              <Building className="mr-3 w-7 h-7" />
-              Enter ByteTech Industries
-              <ChevronRight className="ml-3 w-7 h-7 group-hover:translate-x-1 transition-transform duration-300" />
-            </span>
-          </button>
-          <p className="text-gray-400 mt-4 text-lg">🚀 Begin your networking mastery journey</p>
-        </div>
-      </div>
-    </div>
-  );
-
-  const BuildingView = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-12">
-          <div className="mb-6 lg:mb-0">
-            <h1 className="text-5xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
-              ByteTech Industries
-            </h1>
-            <p className="text-blue-200 text-xl">Choose your floor to begin networking challenges</p>
-            <div className="flex items-center mt-3 text-green-400">
-              <CheckCircle className="w-5 h-5 mr-2" />
-              <span className="text-lg">Welcome back, Alex! 👨‍💻</span>
+              <h1 className="text-7xl font-black bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent mb-6">
+                SubnetMaster Academy
+              </h1>
+              <p className="text-2xl text-blue-200 max-w-3xl mx-auto leading-relaxed">
+                Master network subnetting through an epic journey at <span className="font-bold text-cyan-300">ByteTech Industries</span>
+              </p>
             </div>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl">
-            <div className="flex items-center space-x-8">
-              <div className="text-center">
-                <div className="text-3xl font-black text-green-400 mb-1">{gameProgress.completedLevels.length}</div>
-                <div className="text-sm text-green-200 font-medium">Floors Cleared</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-blue-400 mb-1">{gameProgress.totalScore}</div>
-                <div className="text-sm text-blue-200 font-medium">Total Score</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl font-black text-purple-400 mb-1">0</div>
-                <div className="text-sm text-purple-200 font-medium">Achievements</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-8 text-center">
-            <div className="inline-block bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
-              <h2 className="text-2xl font-bold text-gray-300 mb-4">🏢 ByteTech Industries Building</h2>
-              <div className="flex justify-center space-x-2">
-                {levels.map((level) => {
-                  const isUnlocked = gameProgress.unlockedLevels.includes(level.id);
-                  const isCompleted = gameProgress.completedLevels.includes(level.id);
-                  return (
-                    <div key={level.id} className="flex flex-col items-center">
-                      <div className={`w-16 h-12 rounded-lg border-2 flex items-center justify-center text-xs font-bold ${
-                        isCompleted ? 'bg-green-500/30 border-green-400 text-green-300' :
-                        isUnlocked ? 'bg-blue-500/30 border-blue-400 text-blue-300' :
-                        'bg-gray-500/20 border-gray-600 text-gray-500'
-                      }`}>
-                        {isCompleted ? '✓' : isUnlocked ? level.id : '🔒'}
-                      </div>
-                      <div className="text-xs mt-1 text-gray-400">Floor {level.id}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-            {levels.map((level, index) => {
-              const isUnlocked = gameProgress.unlockedLevels.includes(level.id);
-              const isCompleted = gameProgress.completedLevels.includes(level.id);
-
-              return (
-                <div key={level.id} className="relative group">
-                  <div className={`bg-white/10 backdrop-blur-md rounded-2xl p-8 border transition-all duration-500 shadow-xl ${
-                    isUnlocked
-                      ? 'border-white/20 hover:border-blue-400/50 hover:bg-white/15 cursor-pointer hover:scale-[1.02] hover:shadow-2xl'
-                      : 'border-gray-600/30 opacity-60'
-                  } ${isCompleted ? 'ring-2 ring-green-400/30 bg-green-500/5' : ''}`}>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-6">
-                        <div className={`p-4 rounded-2xl text-white flex items-center justify-center shadow-lg ${level.color} ${
-                          isUnlocked ? 'group-hover:scale-110' : ''
-                        } transition-transform duration-300`}>
-                          {level.icon}
-                        </div>
-
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-4 mb-3">
-                            <h3 className="text-2xl font-bold">{level.title}</h3>
-                            <span className="text-sm px-3 py-1 rounded-full font-medium bg-blue-500/20 text-blue-300">
-                              {level.subtitle}
-                            </span>
-                            {isCompleted && (
-                              <div className="flex items-center text-green-400 bg-green-500/20 px-3 py-1 rounded-full">
-                                <Trophy className="w-4 h-4 mr-2" />
-                                <span className="text-sm font-medium">Mastered</span>
-                              </div>
-                            )}
-                          </div>
-
-                          <p className="text-gray-300 mb-4 text-lg leading-relaxed">{level.description}</p>
-
-                          <div className="flex items-center space-x-6 text-sm text-gray-400">
-                            <div className="flex items-center">
-                              <span className="mr-2">📍</span>
-                              <span>{level.floor}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <Clock className="w-4 h-4 mr-2" />
-                              <span>{level.estimatedTime}</span>
-                            </div>
-                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                              level.difficulty === 'Beginner' ? 'bg-green-500/20 text-green-300' :
-                              level.difficulty === 'Intermediate' ? 'bg-blue-500/20 text-blue-300' :
-                              level.difficulty === 'Advanced' ? 'bg-purple-500/20 text-purple-300' :
-                              level.difficulty === 'Expert' ? 'bg-orange-500/20 text-orange-300' :
-                              level.difficulty === 'Master' ? 'bg-red-500/20 text-red-300' :
-                              'bg-indigo-500/20 text-indigo-300'
-                            }`}>
-                              {level.difficulty}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center space-x-4">
-                        {isUnlocked ? (
-                          <button
-                            onClick={() => startLevel(level)}
-                            className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 flex items-center shadow-lg hover:scale-105 hover:shadow-xl ${
-                              isCompleted
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
-                                : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
-                            }`}
-                          >
-                            {isCompleted ? (
-                              <>
-                                <Trophy className="mr-2 w-5 h-5" />
-                                Replay Level
-                              </>
-                            ) : (
-                              <>
-                                <Play className="mr-2 w-5 h-5" />
-                                Start Challenge
-                              </>
-                            )}
-                            <ChevronRight className="ml-2 w-5 h-5" />
-                          </button>
-                        ) : (
-                          <div className="flex items-center text-gray-500 bg-gray-600/20 px-6 py-4 rounded-xl border border-gray-600/30">
-                            <Lock className="w-5 h-5 mr-3" />
-                            <span className="font-medium">Complete Level {level.id - 1} to unlock</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {index < levels.length - 1 && (
-                    <div className="flex justify-center py-3">
-                      <div className={`w-1 h-6 rounded-full transition-all duration-500 ${
-                        gameProgress.completedLevels.includes(level.id)
-                          ? 'bg-gradient-to-b from-green-400 to-blue-500 shadow-lg'
-                          : 'bg-gray-600'
-                      }`} />
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-16 max-w-4xl mx-auto">
-          <div className="bg-gradient-to-r from-green-500/10 via-blue-500/10 to-purple-500/10 backdrop-blur-md rounded-2xl p-8 border border-green-400/30 shadow-xl">
-            <div className="flex items-start space-x-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                <span className="text-2xl">🤖</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-green-300 text-xl mb-3">NetBot says:</h3>
-                <div className="text-green-100 text-lg leading-relaxed space-y-3">
-                  <p>
-                    "Welcome to ByteTech Industries! 🎉 You're about to embark on an incredible journey through network mastery."
-                  </p>
-                  <p>
-                    "Start with <span className="font-bold text-green-300">Level 1</span> to learn the fundamentals, then progress through each floor.
-                    Each level builds on the previous one, so take your time to truly master each concept! 🚀"
-                  </p>
-                  {gameProgress.completedLevels.length > 0 && (
-                    <p className="text-yellow-300">
-                      "Great progress! You've completed {gameProgress.completedLevels.length} level{gameProgress.completedLevels.length !== 1 ? 's' : ''}.
-                      Keep up the excellent work! 💪"
+          <div className="max-w-5xl mx-auto mb-16">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 border border-white/20 shadow-2xl">
+              <div className="grid lg:grid-cols-2 gap-10 items-center">
+                <div>
+                  <h2 className="text-4xl font-bold mb-8 text-transparent bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text">
+                    Welcome to ByteTech Industries! 🏢
+                  </h2>
+                  <div className="space-y-6 text-lg leading-relaxed">
+                    <p className="text-gray-200">
+                      You're <span className="font-bold text-blue-300">Alex</span>, a new IT apprentice at ByteTech Industries - a cutting-edge tech company with network challenges on every floor.
                     </p>
-                  )}
+                    <p className="text-gray-200">
+                      Your mentor <span className="text-green-400 font-bold">NetBot 🤖</span> will guide you through the building, solving increasingly complex subnetting puzzles.
+                    </p>
+                    <p className="text-gray-200">
+                      Each floor presents unique networking challenges. Complete each level to unlock your keycard and advance to the next floor!
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-2xl p-8 border border-blue-400/30 shadow-xl">
+                    <div className="text-center mb-6">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                        <span className="text-3xl">👨‍💻</span>
+                      </div>
+                      <h3 className="font-bold text-xl text-blue-300">Alex (That's You!)</h3>
+                      <p className="text-blue-200">IT Apprentice Level 1</p>
+                      <div className="mt-2 bg-blue-500/20 rounded-full h-2">
+                        <div className="bg-blue-400 h-2 rounded-full w-1/4 animate-pulse"></div>
+                      </div>
+                    </div>
+
+                    <div className="text-center">
+                      <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
+                        <span className="text-2xl">🤖</span>
+                      </div>
+                      <h3 className="font-bold text-lg text-green-300">NetBot</h3>
+                      <p className="text-green-200">Your AI Mentor</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+
+          <div className="grid lg:grid-cols-3 gap-8 mb-16">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Trophy className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Progressive Mastery</h3>
+              <p className="text-gray-300 leading-relaxed">Journey from basic Class C networks to global Class A architectures with 6 carefully crafted levels</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-purple-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Target className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Real-World Scenarios</h3>
+              <p className="text-gray-300 leading-relaxed">Solve actual business problems from law firms to hospitals with immediate feedback and professional guidance</p>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-500 group">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Star className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Gamified Experience</h3>
+              <p className="text-gray-300 leading-relaxed">Unlock floors, earn achievements, track progress, and become a certified SubnetMaster consultant</p>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <button
+              onClick={() => setCurrentView('building')}
+              className="group relative inline-flex items-center px-12 py-6 bg-gradient-to-r from-blue-500 via-purple-600 to-indigo-600 hover:from-blue-600 hover:via-purple-700 hover:to-indigo-700 rounded-2xl font-bold text-2xl transition-all duration-500 hover:scale-105 hover:shadow-2xl shadow-xl"
+            >
+              <span className="relative flex items-center">
+                <Building className="mr-3 w-7 h-7" />
+                Enter ByteTech Industries
+                <ChevronRight className="ml-3 w-7 h-7 group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+            </button>
+            <p className="text-gray-400 mt-4 text-lg">🚀 Begin your networking mastery journey</p>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
 
-  const LevelScreen = () => {
-    // Local state for form inputs to prevent focus loss
-    const [formData, setFormData] = useState({
-      networkAddress: '',
-      subnetMask: '',
-      broadcastAddress: '',
-      firstHost: '',
-      lastHost: ''
-    });
+  if (currentView === 'building') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white font-sans">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-12">
+            <div className="mb-6 lg:mb-0">
+              <h1 className="text-5xl font-black bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mb-2">
+                ByteTech Industries
+              </h1>
+              <p className="text-blue-200 text-xl">Choose your floor to begin networking challenges</p>
+              <div className="flex items-center mt-3 text-green-400">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                <span className="text-lg">Welcome back, Alex! 👨‍💻</span>
+              </div>
+            </div>
 
-    // Initialize form data when subnet changes
-    useEffect(() => {
-      if (userAnswers[currentSubnet]) {
-        setFormData(userAnswers[currentSubnet]);
-      } else {
-        setFormData({
-          networkAddress: '',
-          subnetMask: '',
-          broadcastAddress: '',
-          firstHost: '',
-          lastHost: ''
-        });
-      }
-    }, [currentSubnet]);
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 shadow-xl">
+              <div className="flex items-center space-x-8">
+                <div className="text-center">
+                  <div className="text-3xl font-black text-green-400 mb-1">{gameProgress.completedLevels.length}</div>
+                  <div className="text-sm text-green-200 font-medium">Floors Cleared</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-blue-400 mb-1">{gameProgress.totalScore}</div>
+                  <div className="text-sm text-blue-200 font-medium">Total Score</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl font-black text-purple-400 mb-1">0</div>
+                  <div className="text-sm text-purple-200 font-medium">Achievements</div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-    // Update local form data
-    const handleInputChange = (field, value) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: value
-      }));
-      // Also update main state
-      updateSubnetAnswer(field, value);
-    };
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-8 text-center">
+              <div className="inline-block bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10">
+                <h2 className="text-2xl font-bold text-gray-300 mb-4">🏢 ByteTech Industries Building</h2>
+                <div className="flex justify-center space-x-2">
+                  {levels.map((level) => {
+                    const isUnlocked = gameProgress.unlockedLevels.includes(level.id);
+                    const isCompleted = gameProgress.completedLevels.includes(level.id);
+                    return (
+                      <div key={level.id} className="flex flex-col items-center">
+                        <div className={`w-16 h-12 rounded-lg border-2 flex items-center justify-center text-xs font-bold ${
+                          isCompleted ? 'bg-green-500/30 border-green-400 text-green-300' :
+                          isUnlocked ? 'bg-blue-500/30 border-blue-400 text-blue-300' :
+                          'bg-gray-500/20 border-gray-600 text-gray-500'
+                        }`}>
+                          {isCompleted ? '✓' : isUnlocked ? level.id : '🔒'}
+                        </div>
+                        <div className="text-xs mt-1 text-gray-400">Floor {level.id}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
 
+            <div className="space-y-6">
+              {levels.map((level, index) => {
+                const isUnlocked = gameProgress.unlockedLevels.includes(level.id);
+                const isCompleted = gameProgress.completedLevels.includes(level.id);
+
+                return (
+                  <div key={level.id} className="relative group">
+                    <div className={`bg-white/10 backdrop-blur-md rounded-2xl p-8 border transition-all duration-500 shadow-xl ${
+                      isUnlocked
+                        ? 'border-white/20 hover:border-blue-400/50 hover:bg-white/15 cursor-pointer hover:scale-[1.02] hover:shadow-2xl'
+                        : 'border-gray-600/30 opacity-60'
+                    } ${isCompleted ? 'ring-2 ring-green-400/30 bg-green-500/5' : ''}`}>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-6">
+                          <div className={`p-4 rounded-2xl text-white flex items-center justify-center shadow-lg ${level.color} ${
+                            isUnlocked ? 'group-hover:scale-110' : ''
+                          } transition-transform duration-300`}>
+                            {level.icon}
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-4 mb-3">
+                              <h3 className="text-2xl font-bold">{level.title}</h3>
+                              <span className="text-sm px-3 py-1 rounded-full font-medium bg-blue-500/20 text-blue-300">
+                                {level.subtitle}
+                              </span>
+                              {isCompleted && (
+                                <div className="flex items-center text-green-400 bg-green-500/20 px-3 py-1 rounded-full">
+                                  <Trophy className="w-4 h-4 mr-2" />
+                                  <span className="text-sm font-medium">Mastered</span>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-gray-300 mb-4 text-lg leading-relaxed">{level.description}</p>
+
+                            <div className="flex items-center space-x-6 text-sm text-gray-400">
+                              <div className="flex items-center">
+                                <span className="mr-2">📍</span>
+                                <span>{level.floor}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Clock className="w-4 h-4 mr-2" />
+                                <span>{level.estimatedTime}</span>
+                              </div>
+                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                level.difficulty === 'Beginner' ? 'bg-green-500/20 text-green-300' :
+                                level.difficulty === 'Intermediate' ? 'bg-blue-500/20 text-blue-300' :
+                                level.difficulty === 'Advanced' ? 'bg-purple-500/20 text-purple-300' :
+                                level.difficulty === 'Expert' ? 'bg-orange-500/20 text-orange-300' :
+                                level.difficulty === 'Master' ? 'bg-red-500/20 text-red-300' :
+                                'bg-indigo-500/20 text-indigo-300'
+                              }`}>
+                                {level.difficulty}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-4">
+                          {isUnlocked ? (
+                            <button
+                              onClick={() => startLevel(level)}
+                              className={`px-8 py-4 rounded-xl font-bold transition-all duration-300 flex items-center shadow-lg hover:scale-105 hover:shadow-xl ${
+                                isCompleted
+                                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white'
+                                  : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white'
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <>
+                                  <Trophy className="mr-2 w-5 h-5" />
+                                  Replay Level
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="mr-2 w-5 h-5" />
+                                  Start Challenge
+                                </>
+                              )}
+                              <ChevronRight className="ml-2 w-5 h-5" />
+                            </button>
+                          ) : (
+                            <div className="flex items-center text-gray-500 bg-gray-600/20 px-6 py-4 rounded-xl border border-gray-600/30">
+                              <Lock className="w-5 h-5 mr-3" />
+                              <span className="font-medium">Complete Level {level.id - 1} to unlock</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {index < levels.length - 1 && (
+                      <div className="flex justify-center py-3">
+                        <div className={`w-1 h-6 rounded-full transition-all duration-500 ${
+                          gameProgress.completedLevels.includes(level.id)
+                            ? 'bg-gradient-to-b from-green-400 to-blue-500 shadow-lg'
+                            : 'bg-gray-600'
+                        }`} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentView === 'level') {
     if (!currentLevel) return null;
 
     if (gameState === 'tutorial') {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans">
           <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
               <button
@@ -682,11 +766,8 @@ const SubnetMasterApp = () => {
     }
 
     if (gameState === 'playing') {
-      const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
-      const currentSolution = solution.solutions[currentSubnet];
-
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans">
           <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
               <button
@@ -725,117 +806,11 @@ const SubnetMasterApp = () => {
                 </p>
               </div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 border border-white/20">
-                <h3 className="text-2xl font-bold mb-6 text-center">
-                  Configure Subnet {currentSubnet + 1}
-                </h3>
-
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="networkAddress" className="block text-sm font-medium text-gray-300 mb-2">
-                      Network Address
-                    </label>
-                    <input
-                      id="networkAddress"
-                      name="networkAddress"
-                      type="text"
-                      placeholder="e.g., 192.168.1.0"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={formData.networkAddress}
-                      onChange={(e) => handleInputChange('networkAddress', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="subnetMask" className="block text-sm font-medium text-gray-300 mb-2">
-                      Subnet Mask
-                    </label>
-                    <input
-                      id="subnetMask"
-                      name="subnetMask"
-                      type="text"
-                      placeholder="e.g., 255.255.255.192"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={formData.subnetMask}
-                      onChange={(e) => handleInputChange('subnetMask', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="broadcastAddress" className="block text-sm font-medium text-gray-300 mb-2">
-                      Broadcast Address
-                    </label>
-                    <input
-                      id="broadcastAddress"
-                      name="broadcastAddress"
-                      type="text"
-                      placeholder="e.g., 192.168.1.63"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={formData.broadcastAddress}
-                      onChange={(e) => handleInputChange('broadcastAddress', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="firstHost" className="block text-sm font-medium text-gray-300 mb-2">
-                      First Host
-                    </label>
-                    <input
-                      id="firstHost"
-                      name="firstHost"
-                      type="text"
-                      placeholder="e.g., 192.168.1.1"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={formData.firstHost}
-                      onChange={(e) => handleInputChange('firstHost', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label htmlFor="lastHost" className="block text-sm font-medium text-gray-300 mb-2">
-                      Last Host
-                    </label>
-                    <input
-                      id="lastHost"
-                      name="lastHost"
-                      type="text"
-                      placeholder="e.g., 192.168.1.62"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      value={formData.lastHost}
-                      onChange={(e) => handleInputChange('lastHost', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-                </div>
-
-                {feedback.length > 0 && (
-                  <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
-                    <h4 className="font-bold text-yellow-300 mb-2">📋 Feedback:</h4>
-                    {feedback.map((fb, index) => (
-                      <div key={index} className={`flex items-center mb-1 ${
-                        fb.includes('✅') ? 'text-green-300' : 'text-red-300'
-                      }`}>
-                        {fb.includes('✅') ? <Check className="w-4 h-4 mr-2" /> : <X className="w-4 h-4 mr-2" />}
-                        {fb}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <div className="text-center mt-8">
-                  <button
-                    onClick={submitSubnetAnswer}
-                    className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
-                    disabled={feedback.length > 0}
-                  >
-                    {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level!' : 'Submit & Continue'} 🎯
-                  </button>
-                </div>
-              </div>
+              <SubnetForm
+                currentSubnet={currentSubnet}
+                scenario={scenario}
+                onSubmit={handleFormSubmit}
+              />
             </div>
           </div>
         </div>
@@ -846,7 +821,7 @@ const SubnetMasterApp = () => {
       const passed = score >= 80;
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white">
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans">
           <div className="container mx-auto px-4 py-8">
             <div className="max-w-4xl mx-auto text-center">
               <div className="bg-white/10 backdrop-blur-md rounded-xl p-8 border border-white/20">
@@ -884,7 +859,6 @@ const SubnetMasterApp = () => {
                       setGameState('tutorial');
                       setCurrentSubnet(0);
                       setUserAnswers({});
-                      setFeedback([]);
                       setScore(0);
                       const newScenario = generateLevel1Scenario();
                       setScenario(newScenario);
@@ -907,17 +881,9 @@ const SubnetMasterApp = () => {
         </div>
       );
     }
+  }
 
-    return null;
-  };
-
-  return (
-    <div className="font-sans">
-      {currentView === 'intro' && <IntroScreen />}
-      {currentView === 'building' && <BuildingView />}
-      {currentView === 'level' && <LevelScreen />}
-    </div>
-  );
+  return null;
 };
 
 export default SubnetMasterApp;
