@@ -658,12 +658,14 @@ const currentSolution = solution.solutions[currentSubnet];
           <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
               <button
-                onClick={() => setCurrentView('building')}
-                className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
-                Back to Building
-              </button>
+                  onClick={() => setCurrentView('building')}
+                  tabIndex={-1} // ⬅️ keep it out of the tab order
+                  className="flex items-center text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4 mr-2 rotate-180" />
+                  Back to Building
+                </button>
+
               
               <div className="text-center">
                 <h1 className="text-2xl font-bold">{currentLevel.title}</h1>
@@ -699,81 +701,95 @@ const currentSolution = solution.solutions[currentSubnet];
                 </h3>
 
                 <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Network Address
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 192.168.1.0"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      autoComplete="off"
-                      inputMode="decimal"
-                      defaultValue={userAnswers[currentSubnet]?.networkAddress || ''}
-                       onBlur={(e) => updateSubnetAnswer('networkAddress', e.target.value)}
-                     />
-                  </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-300 mb-2">
+      Network Address
+    </label>
+    <input
+      type="text"
+      placeholder="e.g., 192.168.1.0"
+      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+      autoComplete="off"
+      inputMode="decimal"
+      tabIndex={1}
+      defaultValue={userAnswers[currentSubnet]?.networkAddress || ''}
+      onBlur={(e) => updateSubnetAnswer('networkAddress', e.target.value)}
+    />
+  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Subnet Mask
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 255.255.255.192"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      autoComplete="off"
-                      inputMode="decimal"
-                      defaultValue={userAnswers[currentSubnet]?.subnetMask || ''}
-                      onBlur={(e) => updateSubnetAnswer('subnetMask', e.target.value)}
-                    />
-                  </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-300 mb-2">
+      Subnet Mask
+    </label>
+    <input
+      type="text"
+      placeholder="e.g., 255.255.255.192"
+      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+      autoComplete="off"
+      inputMode="decimal"
+      tabIndex={2}
+      defaultValue={userAnswers[currentSubnet]?.subnetMask || ''}
+      onBlur={(e) => updateSubnetAnswer('subnetMask', e.target.value)}
+    />
+  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Broadcast Address
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 192.168.1.63"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      autoComplete="off"
-                      inputMode="decimal"
-                      defaultValue={userAnswers[currentSubnet]?.broadcastAddress || ''}
-                      onBlur={(e) => updateSubnetAnswer('broadcastAddress', e.target.value)}
-                    />
-                  </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-300 mb-2">
+      Broadcast Address
+    </label>
+    <input
+      type="text"
+      placeholder="e.g., 192.168.1.63"
+      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+      autoComplete="off"
+      inputMode="decimal"
+      tabIndex={3}
+      defaultValue={userAnswers[currentSubnet]?.broadcastAddress || ''}
+      onBlur={(e) => updateSubnetAnswer('broadcastAddress', e.target.value)}
+    />
+  </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      First Host
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 192.168.1.1"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      autoComplete="off"
-                      inputMode="decimal"
-                      defaultValue={userAnswers[currentSubnet]?.firstHost || ''}
-                      onBlur={(e) => updateSubnetAnswer('firstHost', e.target.value)}
-                    />
-                  </div>
+  <div>
+    <label className="block text-sm font-medium text-gray-300 mb-2">
+      First Host
+    </label>
+    <input
+      type="text"
+      placeholder="e.g., 192.168.1.1"
+      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+      autoComplete="off"
+      inputMode="decimal"
+      tabIndex={4}
+      defaultValue={userAnswers[currentSubnet]?.firstHost || ''}
+      onBlur={(e) => updateSubnetAnswer('firstHost', e.target.value)}
+    />
+  </div>
 
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Last Host
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g., 192.168.1.62"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
-                      autoComplete="off"
-                      inputMode="decimal"
-                      defaultValue={userAnswers[currentSubnet]?.lastHost || ''}
-                      onBlur={(e) => updateSubnetAnswer('lastHost', e.target.value)}
-                    />
-                  </div>
-                </div>
+  <div className="md:col-span-2">
+    <label className="block text-sm font-medium text-gray-300 mb-2">
+      Last Host
+    </label>
+    <input
+      type="text"
+      placeholder="e.g., 192.168.1.62"
+      className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:outline-none"
+      autoComplete="off"
+      inputMode="decimal"
+      tabIndex={5}
+      defaultValue={userAnswers[currentSubnet]?.lastHost || ''}
+      onBlur={(e) => updateSubnetAnswer('lastHost', e.target.value)}
+    />
+  </div>
+</div>
+<button
+  onClick={submitSubnetAnswer}
+  tabIndex={6}
+  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105"
+  disabled={feedback.length > 0}
+>
+  {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level!' : 'Submit & Continue'} 🎯
+</button>
+
 
                 {feedback.length > 0 && (
                   <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
