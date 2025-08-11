@@ -9,6 +9,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
   const [firstHost, setFirstHost] = useState('');
   const [lastHost, setLastHost] = useState('');
   const [feedback, setFeedback] = useState([]);
+  const [showContinue, setShowContinue] = useState(false);
 
   // Reset form when subnet changes
   useEffect(() => {
@@ -18,6 +19,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
     setFirstHost('');
     setLastHost('');
     setFeedback([]);
+    setShowContinue(false);
   }, [currentSubnet]);
 
   const handleSubmit = () => {
@@ -33,11 +35,13 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
     if (result.feedback) {
       setFeedback(result.feedback);
       if (result.shouldContinue) {
-        setTimeout(() => {
-          setFeedback([]);
-        }, 3000);
+        setShowContinue(true);
       }
     }
+  };
+
+  const handleContinue = () => {
+    const result = onSubmit({ continue: true });
   };
 
   return (
@@ -59,6 +63,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             value={networkAddress}
             onChange={(e) => setNetworkAddress(e.target.value)}
             autoComplete="off"
+            disabled={showContinue}
           />
         </div>
 
@@ -74,6 +79,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             value={subnetMask}
             onChange={(e) => setSubnetMask(e.target.value)}
             autoComplete="off"
+            disabled={showContinue}
           />
         </div>
 
@@ -89,6 +95,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             value={broadcastAddress}
             onChange={(e) => setBroadcastAddress(e.target.value)}
             autoComplete="off"
+            disabled={showContinue}
           />
         </div>
 
@@ -104,6 +111,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             value={firstHost}
             onChange={(e) => setFirstHost(e.target.value)}
             autoComplete="off"
+            disabled={showContinue}
           />
         </div>
 
@@ -119,6 +127,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             value={lastHost}
             onChange={(e) => setLastHost(e.target.value)}
             autoComplete="off"
+            disabled={showContinue}
           />
         </div>
       </div>
@@ -138,13 +147,22 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
       )}
 
       <div className="text-center mt-8">
-        <button
-          onClick={handleSubmit}
-          className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 text-white"
-          disabled={feedback.length > 0}
-        >
-          {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level!' : 'Submit & Continue'} 🎯
-        </button>
+        {!showContinue ? (
+          <button
+            onClick={handleSubmit}
+            className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 text-white"
+            disabled={feedback.length > 0 && !showContinue}
+          >
+            Submit Answer 🎯
+          </button>
+        ) : (
+          <button
+            onClick={handleContinue}
+            className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 text-white animate-pulse"
+          >
+            {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level! 🎊' : 'Continue to Next Subnet →'}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -187,27 +205,33 @@ const SubnetMasterApp = () => {
   }, [gameProgress]);
 
   const generateLevel1Scenario = () => {
+    // Much larger pool of scenarios with different network addresses
     const scenarios = [
-      {
-        baseNetwork: "192.168.1.0/24",
-        requiredSubnets: 4,
-        description: "Split into 4 equal subnets",
-        story: "The reception area needs 4 separate network segments for different departments."
-      },
-      {
-        baseNetwork: "192.168.10.0/24",
-        requiredSubnets: 2,
-        description: "Split into 2 equal subnets",
-        story: "Create separate networks for employees and guests."
-      },
-      {
-        baseNetwork: "192.168.50.0/24",
-        requiredSubnets: 8,
-        description: "Split into 8 equal subnets",
-        story: "Each workgroup needs its own network segment."
-      }
+      // /24 networks split into 2 subnets
+      { baseNetwork: "192.168.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create separate networks for employees and guests." },
+      { baseNetwork: "192.168.10.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Separate the production and development environments." },
+      { baseNetwork: "192.168.100.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Divide the network for office staff and warehouse systems." },
+      { baseNetwork: "10.0.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create isolated networks for finance and HR departments." },
+      { baseNetwork: "172.16.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Separate public WiFi from internal network." },
+
+      // /24 networks split into 4 subnets
+      { baseNetwork: "192.168.5.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "The reception area needs 4 separate network segments for different departments." },
+      { baseNetwork: "192.168.20.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Create networks for Sales, Marketing, Support, and Admin teams." },
+      { baseNetwork: "192.168.50.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Set up isolated networks for each floor of the building." },
+      { baseNetwork: "10.0.5.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Configure separate VLANs for different security zones." },
+      { baseNetwork: "172.16.10.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Divide the network for printers, phones, computers, and servers." },
+
+      // /24 networks split into 8 subnets
+      { baseNetwork: "192.168.2.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Each workgroup needs its own network segment." },
+      { baseNetwork: "192.168.30.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Create separate networks for 8 branch offices." },
+      { baseNetwork: "192.168.75.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Set up isolated lab environments for training." },
+      { baseNetwork: "10.0.10.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Configure networks for a multi-tenant office building." },
+      { baseNetwork: "172.16.20.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Segment the network for enhanced security compliance." }
     ];
-    return scenarios[Math.floor(Math.random() * scenarios.length)];
+
+    // Get random scenario
+    const randomIndex = Math.floor(Math.random() * scenarios.length);
+    return scenarios[randomIndex];
   };
 
   const calculateLevel1Solution = (baseNetwork, requiredSubnets) => {
@@ -273,6 +297,12 @@ const SubnetMasterApp = () => {
   };
 
   const handleFormSubmit = useCallback((answers) => {
+    // Handle continue button click
+    if (answers.continue) {
+      setCurrentSubnet(prev => prev + 1);
+      return { feedback: [], shouldContinue: false };
+    }
+
     if (!scenario || !currentLevel) return { feedback: [], shouldContinue: false };
 
     const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
@@ -296,11 +326,10 @@ const SubnetMasterApp = () => {
     }));
 
     if (currentSubnet < scenario.requiredSubnets - 1) {
-      setTimeout(() => {
-        setCurrentSubnet(prev => prev + 1);
-      }, 3000);
+      // Show feedback and wait for user to click continue
       return { feedback: feedbackMessages, shouldContinue: true };
     } else {
+      // Last subnet - calculate final score
       const finalScore = calculateScore(correctCount, scenario.requiredSubnets * 5);
       setScore(finalScore);
 
@@ -316,9 +345,10 @@ const SubnetMasterApp = () => {
         setGameProgress(newProgress);
       }
 
+      // Wait a moment before showing completed screen
       setTimeout(() => {
         setGameState('completed');
-      }, 3000);
+      }, 2000);
 
       return { feedback: feedbackMessages, shouldContinue: false };
     }
