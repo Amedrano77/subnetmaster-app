@@ -890,6 +890,7 @@ const SubnetMasterApp = () => {
                       setCurrentSubnet(0);
                       setUserAnswers({});
                       setScore(0);
+                      setTotalCorrectAnswers(0);
                       const newScenario = generateLevel1Scenario();
                       setScenario(newScenario);
                     }}
