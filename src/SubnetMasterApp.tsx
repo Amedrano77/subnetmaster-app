@@ -175,6 +175,7 @@ const SubnetMasterApp = () => {
   const [currentSubnet, setCurrentSubnet] = useState(0);
   const [userAnswers, setUserAnswers] = useState({});
   const [score, setScore] = useState(0);
+  const [totalCorrectAnswers, setTotalCorrectAnswers] = useState(0);
   const [scenario, setScenario] = useState(null);
 
   const [gameProgress, setGameProgress] = useState(() => {
@@ -285,6 +286,7 @@ const SubnetMasterApp = () => {
     setCurrentSubnet(0);
     setUserAnswers({});
     setScore(0);
+    setTotalCorrectAnswers(0);
 
     if (level.id === 1) {
       const newScenario = generateLevel1Scenario();
@@ -319,6 +321,10 @@ const SubnetMasterApp = () => {
     const correctCount = Object.values(validations).filter(v => v.isCorrect).length;
     const feedbackMessages = Object.values(validations).map(v => v.feedback);
 
+    // Accumulate total correct answers
+    const newTotalCorrect = totalCorrectAnswers + correctCount;
+    setTotalCorrectAnswers(newTotalCorrect);
+
     // Store answers
     setUserAnswers(prev => ({
       ...prev,
@@ -329,8 +335,9 @@ const SubnetMasterApp = () => {
       // Show feedback and wait for user to click continue
       return { feedback: feedbackMessages, shouldContinue: true };
     } else {
-      // Last subnet - calculate final score
-      const finalScore = calculateScore(correctCount, scenario.requiredSubnets * 5);
+      // Last subnet - calculate final score using accumulated correct answers
+      const totalQuestions = scenario.requiredSubnets * 5;
+      const finalScore = calculateScore(newTotalCorrect, totalQuestions);
       setScore(finalScore);
 
       if (finalScore >= 80) {
@@ -352,7 +359,7 @@ const SubnetMasterApp = () => {
 
       return { feedback: feedbackMessages, shouldContinue: false };
     }
-  }, [currentSubnet, scenario, currentLevel, gameProgress]);
+  }, [currentSubnet, scenario, currentLevel, gameProgress, totalCorrectAnswers]);
 
   const levels = [
     {
