@@ -898,8 +898,27 @@ const SubnetMasterApp = () => {
                       setUserAnswers({});
                       setScore(0);
                       setTotalCorrectAnswers(0);
-                      const newScenario = generateScenarioForLevel(currentLevel.id);
-                      setScenario(newScenario);
+                      try {
+                        const newScenario = generateScenarioForLevel(currentLevel.id);
+                        if (newScenario) {
+                          setScenario(newScenario);
+                        } else {
+                          setScenario({
+                            baseNetwork: "192.168.1.0/24",
+                            requiredSubnets: 2,
+                            description: "Split into 2 equal subnets",
+                            story: "Basic network configuration task."
+                          });
+                        }
+                      } catch (error) {
+                        console.error('Error in Try Again:', error);
+                        setScenario({
+                          baseNetwork: "192.168.1.0/24",
+                          requiredSubnets: 2,
+                          description: "Split into 2 equal subnets",
+                          story: "Basic network configuration task."
+                        });
+                      }
                     }}
                     className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold transition-colors"
                   >
