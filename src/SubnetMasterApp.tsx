@@ -898,7 +898,7 @@ const SubnetMasterApp = () => {
                       setUserAnswers({});
                       setScore(0);
                       setTotalCorrectAnswers(0);
-                      const newScenario = generateLevel1Scenario();
+                      const newScenario = generateScenarioForLevel(currentLevel.id);
                       setScenario(newScenario);
                     }}
                     className="px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-lg font-semibold transition-colors"
