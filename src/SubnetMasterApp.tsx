@@ -160,7 +160,7 @@ const SubnetForm = ({ currentSubnet, scenario, onSubmit }) => {
             onClick={handleContinue}
             className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-xl font-bold text-lg transition-all duration-300 hover:scale-105 text-white animate-pulse"
           >
-            {currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level! 🎊' : 'Continue to Next Subnet →'}
+            {scenario && currentSubnet === scenario.requiredSubnets - 1 ? 'Complete Level! 🎊' : 'Continue to Next Subnet →'}
           </button>
         )}
       </div>
@@ -205,53 +205,163 @@ const SubnetMasterApp = () => {
     }
   }, [gameProgress]);
 
-  const generateLevel1Scenario = () => {
-    // Much larger pool of scenarios with different network addresses
-    const scenarios = [
-      // /24 networks split into 2 subnets
-      { baseNetwork: "192.168.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create separate networks for employees and guests." },
-      { baseNetwork: "192.168.10.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Separate the production and development environments." },
-      { baseNetwork: "192.168.100.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Divide the network for office staff and warehouse systems." },
-      { baseNetwork: "10.0.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create isolated networks for finance and HR departments." },
-      { baseNetwork: "172.16.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Separate public WiFi from internal network." },
+  const generateScenarioForLevel = (levelId) => {
+    const scenariosByLevel = {
+      1: [
+        // Level 1: Basic Class C - Random 2-4 subnets
+        { baseNetwork: "192.168.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create separate networks for employees and guests." },
+        { baseNetwork: "192.168.10.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Separate production, development, testing, and staging environments." },
+        { baseNetwork: "10.0.1.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Create isolated networks for secure and public access." },
+        { baseNetwork: "172.16.1.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Separate networks for Sales, HR, IT, and Finance." },
+        { baseNetwork: "192.168.50.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Isolate administrative and customer networks." },
+        { baseNetwork: "10.0.10.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Segment network for different security zones." },
+        { baseNetwork: "172.16.50.0/24", requiredSubnets: 2, description: "Split into 2 equal subnets", story: "Separate internal and external networks." },
+        { baseNetwork: "192.168.200.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Design basic office network with department separation." }
+      ],
+      2: [
+        // Level 2: Class C - Random 4-8 subnets  
+        { baseNetwork: "192.168.25.0/24", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Create VLANs for 6 different departments." },
+        { baseNetwork: "192.168.75.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Separate networks for printers, phones, PCs, and servers." },
+        { baseNetwork: "10.0.5.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Configure security zones for compliance." },
+        { baseNetwork: "172.16.25.0/24", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Design departmental network architecture." },
+        { baseNetwork: "192.168.125.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Set up networks for different office floors." },
+        { baseNetwork: "10.0.20.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Create networks for training facility." },
+        { baseNetwork: "172.16.75.0/24", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Build multi-department network." },
+        { baseNetwork: "192.168.175.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Design branch office network." }
+      ],
+      3: [
+        // Level 3: Class C Advanced - Random 6-16 subnets
+        { baseNetwork: "192.168.100.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Create networks for 8 departments." },
+        { baseNetwork: "192.168.150.0/24", requiredSubnets: 16, description: "Split into 16 equal subnets", story: "Set up networks for 16 branch offices." },
+        { baseNetwork: "10.0.15.0/24", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Segment network for business units." },
+        { baseNetwork: "172.16.100.0/24", requiredSubnets: 12, description: "Split into 12 equal subnets", story: "Design complex departmental structure." },
+        { baseNetwork: "192.168.225.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Create isolated lab environments." },
+        { baseNetwork: "10.0.25.0/24", requiredSubnets: 16, description: "Split into 16 equal subnets", story: "Build extensive multi-location network." }
+      ],
+      4: [
+        // Level 4: Class B Networks - Random 4-16 subnets
+        { baseNetwork: "172.16.0.0/16", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Design campus-wide network infrastructure." },
+        { baseNetwork: "172.20.0.0/16", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Create networks for corporate headquarters." },
+        { baseNetwork: "172.25.0.0/16", requiredSubnets: 12, description: "Split into 12 equal subnets", story: "Segment enterprise network for security." },
+        { baseNetwork: "172.30.0.0/16", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Build multi-building campus network." },
+        { baseNetwork: "172.18.0.0/16", requiredSubnets: 16, description: "Split into 16 equal subnets", story: "Design regional office network." },
+        { baseNetwork: "172.22.0.0/16", requiredSubnets: 10, description: "Split into 10 equal subnets", story: "Create enterprise-wide VLAN structure." }
+      ],
+      5: [
+        // Level 5: Class B Advanced - Random 8-32 subnets
+        { baseNetwork: "172.17.0.0/16", requiredSubnets: 12, description: "Split into 12 equal subnets", story: "Design complex enterprise network architecture." },
+        { baseNetwork: "172.21.0.0/16", requiredSubnets: 32, description: "Split into 32 equal subnets", story: "Create comprehensive corporate infrastructure." },
+        { baseNetwork: "172.24.0.0/16", requiredSubnets: 16, description: "Split into 16 equal subnets", story: "Build advanced enterprise solutions." },
+        { baseNetwork: "172.27.0.0/16", requiredSubnets: 24, description: "Split into 24 equal subnets", story: "Architect multi-tier application network." },
+        { baseNetwork: "172.19.0.0/16", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Design global enterprise network." }
+      ],
+      6: [
+        // Level 6: Mixed Classes - Random complexity for consulting
+        { baseNetwork: "10.0.0.0/8", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Architect global network infrastructure." },
+        { baseNetwork: "172.31.0.0/16", requiredSubnets: 16, description: "Split into 16 equal subnets", story: "Build university campus network." },
+        { baseNetwork: "192.168.250.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Design network for law firm client." },
+        { baseNetwork: "10.50.0.0/16", requiredSubnets: 12, description: "Split into 12 equal subnets", story: "Create manufacturing company network." },
+        { baseNetwork: "172.26.0.0/16", requiredSubnets: 6, description: "Split into 6 equal subnets", story: "Architect financial services network." },
+        { baseNetwork: "10.0.0.0/8", requiredSubnets: 32, description: "Split into 32 equal subnets", story: "Design worldwide corporate network." },
+        { baseNetwork: "192.168.240.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Build startup company network." }
+      ]
+    };
 
-      // /24 networks split into 4 subnets
-      { baseNetwork: "192.168.5.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "The reception area needs 4 separate network segments for different departments." },
-      { baseNetwork: "192.168.20.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Create networks for Sales, Marketing, Support, and Admin teams." },
-      { baseNetwork: "192.168.50.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Set up isolated networks for each floor of the building." },
-      { baseNetwork: "10.0.5.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Configure separate VLANs for different security zones." },
-      { baseNetwork: "172.16.10.0/24", requiredSubnets: 4, description: "Split into 4 equal subnets", story: "Divide the network for printers, phones, computers, and servers." },
-
-      // /24 networks split into 8 subnets
-      { baseNetwork: "192.168.2.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Each workgroup needs its own network segment." },
-      { baseNetwork: "192.168.30.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Create separate networks for 8 branch offices." },
-      { baseNetwork: "192.168.75.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Set up isolated lab environments for training." },
-      { baseNetwork: "10.0.10.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Configure networks for a multi-tenant office building." },
-      { baseNetwork: "172.16.20.0/24", requiredSubnets: 8, description: "Split into 8 equal subnets", story: "Segment the network for enhanced security compliance." }
-    ];
-
-    // Get random scenario
-    const randomIndex = Math.floor(Math.random() * scenarios.length);
-    return scenarios[randomIndex];
+    const levelScenarios = scenariosByLevel[levelId] || scenariosByLevel[1];
+    const randomIndex = Math.floor(Math.random() * levelScenarios.length);
+    const selectedScenario = levelScenarios[randomIndex];
+    
+    console.log(`Level ${levelId} - Selected scenario:`, selectedScenario);
+    return selectedScenario;
   };
 
-  const calculateLevel1Solution = (baseNetwork, requiredSubnets) => {
+  const calculateSolution = (baseNetwork, requiredSubnets) => {
+    // Extract the network address and original prefix
+    const [networkPart, prefixStr] = baseNetwork.split('/');
+    const originalPrefix = parseInt(prefixStr);
+    
     const subnetBits = Math.ceil(Math.log2(requiredSubnets));
-    const newPrefix = 24 + subnetBits;
+    const newPrefix = originalPrefix + subnetBits;
     const subnetSize = Math.pow(2, 32 - newPrefix);
     const solutions = [];
 
+    // Parse the base network address
+    const octets = networkPart.split('.').map(Number);
+    
     for (let i = 0; i < requiredSubnets; i++) {
-      const baseOctets = baseNetwork.split('.').slice(0, 3).map(Number);
-      const networkAddress = `${baseOctets[0]}.${baseOctets[1]}.${baseOctets[2]}.${i * subnetSize}`;
-      const broadcastAddress = `${baseOctets[0]}.${baseOctets[1]}.${baseOctets[2]}.${(i + 1) * subnetSize - 1}`;
-      const firstHost = `${baseOctets[0]}.${baseOctets[1]}.${baseOctets[2]}.${i * subnetSize + 1}`;
-      const lastHost = `${baseOctets[0]}.${baseOctets[1]}.${baseOctets[2]}.${(i + 1) * subnetSize - 2}`;
+      // Calculate the network address for this subnet
+      const subnetStart = i * subnetSize;
+      const newOctets = [...octets];
+      
+      // Distribute the subnet increment across octets (from right to left)
+      let increment = subnetStart;
+      newOctets[3] += increment % 256;
+      increment = Math.floor(increment / 256);
+      newOctets[2] += increment % 256;
+      increment = Math.floor(increment / 256);
+      newOctets[1] += increment % 256;
+      increment = Math.floor(increment / 256);
+      newOctets[0] += increment;
+      
+      const networkAddress = newOctets.join('.');
+      
+      // Calculate broadcast address
+      const broadcastIncrement = (i + 1) * subnetSize - 1;
+      const broadcastOctets = [...octets];
+      let bIncrement = broadcastIncrement;
+      broadcastOctets[3] += bIncrement % 256;
+      bIncrement = Math.floor(bIncrement / 256);
+      broadcastOctets[2] += bIncrement % 256;
+      bIncrement = Math.floor(bIncrement / 256);
+      broadcastOctets[1] += bIncrement % 256;
+      bIncrement = Math.floor(bIncrement / 256);
+      broadcastOctets[0] += bIncrement;
+      
+      const broadcastAddress = broadcastOctets.join('.');
+      
+      // First host (network + 1) and last host (broadcast - 1)
+      const firstHostIncrement = subnetStart + 1;
+      const firstHostOctets = [...octets];
+      let fIncrement = firstHostIncrement;
+      firstHostOctets[3] += fIncrement % 256;
+      fIncrement = Math.floor(fIncrement / 256);
+      firstHostOctets[2] += fIncrement % 256;
+      fIncrement = Math.floor(fIncrement / 256);
+      firstHostOctets[1] += fIncrement % 256;
+      fIncrement = Math.floor(fIncrement / 256);
+      firstHostOctets[0] += fIncrement;
+      
+      const firstHost = firstHostOctets.join('.');
+      
+      const lastHostIncrement = (i + 1) * subnetSize - 2;
+      const lastHostOctets = [...octets];
+      let lIncrement = lastHostIncrement;
+      lastHostOctets[3] += lIncrement % 256;
+      lIncrement = Math.floor(lIncrement / 256);
+      lastHostOctets[2] += lIncrement % 256;
+      lIncrement = Math.floor(lIncrement / 256);
+      lastHostOctets[1] += lIncrement % 256;
+      lIncrement = Math.floor(lIncrement / 256);
+      lastHostOctets[0] += lIncrement;
+      
+      const lastHost = lastHostOctets.join('.');
+
+      // Calculate subnet mask
+      const maskBits = Array(32).fill(0);
+      for (let j = 0; j < newPrefix; j++) {
+        maskBits[j] = 1;
+      }
+      const subnetMask = [
+        parseInt(maskBits.slice(0, 8).join(''), 2),
+        parseInt(maskBits.slice(8, 16).join(''), 2),
+        parseInt(maskBits.slice(16, 24).join(''), 2),
+        parseInt(maskBits.slice(24, 32).join(''), 2)
+      ].join('.');
 
       solutions.push({
         subnetNumber: i + 1,
         networkAddress,
-        subnetMask: `255.255.255.${256 - subnetSize}`,
+        subnetMask,
         cidr: `${networkAddress}/${newPrefix}`,
         broadcastAddress,
         firstHost,
@@ -260,7 +370,7 @@ const SubnetMasterApp = () => {
       });
     }
 
-    return { solutions, newPrefix, subnetMask: `255.255.255.${256 - subnetSize}` };
+    return { solutions, newPrefix, subnetMask: solutions[0].subnetMask };
   };
 
   const validateLevel1Answer = (userAnswer, correctSolution, field) => {
@@ -280,6 +390,34 @@ const SubnetMasterApp = () => {
   };
 
   const startLevel = (level) => {
+    console.log('Starting level:', level.id);
+    
+    // Generate scenario first, before setting any state
+    let newScenario;
+    try {
+      newScenario = generateScenarioForLevel(level.id);
+      console.log('Generated scenario for level', level.id, ':', newScenario);
+      
+      if (!newScenario) {
+        console.error('Generated scenario is null/undefined for level', level.id);
+        newScenario = {
+          baseNetwork: "192.168.1.0/24",
+          requiredSubnets: 2,
+          description: "Split into 2 equal subnets",
+          story: "Basic network configuration task."
+        };
+      }
+    } catch (error) {
+      console.error('Error generating scenario:', error);
+      newScenario = {
+        baseNetwork: "192.168.1.0/24",
+        requiredSubnets: 2,
+        description: "Split into 2 equal subnets",
+        story: "Basic network configuration task."
+      };
+    }
+
+    // Now set all state at once, including the scenario
     setCurrentLevel(level);
     setCurrentView('level');
     setGameState('tutorial');
@@ -287,11 +425,7 @@ const SubnetMasterApp = () => {
     setUserAnswers({});
     setScore(0);
     setTotalCorrectAnswers(0);
-
-    if (level.id === 1) {
-      const newScenario = generateLevel1Scenario();
-      setScenario(newScenario);
-    }
+    setScenario(newScenario);
   };
 
   const startPlaying = () => {
@@ -305,9 +439,12 @@ const SubnetMasterApp = () => {
       return { feedback: [], shouldContinue: false };
     }
 
-    if (!scenario || !currentLevel) return { feedback: [], shouldContinue: false };
+    if (!scenario || !currentLevel) {
+      console.error('Missing scenario or currentLevel:', { scenario, currentLevel });
+      return { feedback: ['Error: Scenario not loaded. Please restart the level.'], shouldContinue: false };
+    }
 
-    const solution = calculateLevel1Solution(scenario.baseNetwork, scenario.requiredSubnets);
+    const solution = calculateSolution(scenario.baseNetwork, scenario.requiredSubnets);
     const currentSolution = solution.solutions[currentSubnet];
 
     const validations = {
@@ -718,6 +855,18 @@ const SubnetMasterApp = () => {
     if (!currentLevel) return null;
 
     if (gameState === 'tutorial') {
+      // Don't render until we have a valid scenario
+      if (!scenario) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🔄</div>
+              <p className="text-xl">Loading scenario...</p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans">
           <div className="container mx-auto px-4 py-8">
@@ -748,23 +897,21 @@ const SubnetMasterApp = () => {
                   <p className="text-gray-300 text-lg">{currentLevel.description}</p>
                 </div>
 
-                {scenario && (
-                  <div className="bg-blue-500/10 backdrop-blur-md rounded-xl p-6 border border-blue-400/30 mb-8">
-                    <h3 className="font-bold text-blue-300 text-xl mb-4">📋 Your Challenge:</h3>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-blue-200 mb-2">Network Details:</h4>
-                        <p className="text-blue-100">Base Network: <span className="font-mono font-bold">{scenario.baseNetwork}</span></p>
-                        <p className="text-blue-100">Required Subnets: <span className="font-bold">{scenario.requiredSubnets}</span></p>
-                        <p className="text-blue-100">Task: <span className="font-bold">{scenario.description}</span></p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-blue-200 mb-2">Business Context:</h4>
-                        <p className="text-blue-100">{scenario.story}</p>
-                      </div>
+                <div className="bg-blue-500/10 backdrop-blur-md rounded-xl p-6 border border-blue-400/30 mb-8">
+                  <h3 className="font-bold text-blue-300 text-xl mb-4">📋 Your Challenge:</h3>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="font-semibold text-blue-200 mb-2">Network Details:</h4>
+                      <p className="text-blue-100">Base Network: <span className="font-mono font-bold">{scenario.baseNetwork}</span></p>
+                      <p className="text-blue-100">Required Subnets: <span className="font-bold">{scenario.requiredSubnets}</span></p>
+                      <p className="text-blue-100">Task: <span className="font-bold">{scenario.description}</span></p>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-200 mb-2">Business Context:</h4>
+                      <p className="text-blue-100">{scenario.story}</p>
                     </div>
                   </div>
-                )}
+                </div>
 
                 <div className="bg-green-500/10 backdrop-blur-md rounded-xl p-6 border border-green-400/30 mb-8">
                   <div className="flex items-start space-x-4">
@@ -803,6 +950,18 @@ const SubnetMasterApp = () => {
     }
 
     if (gameState === 'playing') {
+      // Don't render until we have a valid scenario
+      if (!scenario) {
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-4xl mb-4">🔄</div>
+              <p className="text-xl">Loading scenario...</p>
+            </div>
+          </div>
+        );
+      }
+
       return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white font-sans">
           <div className="container mx-auto px-4 py-8">
